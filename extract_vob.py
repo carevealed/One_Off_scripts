@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 =====================================================================
 * California Audiovisual Preservation Project Script: VOB Extractor *
@@ -21,12 +23,6 @@ import sys
 
 
 __author__ = 'California Audio Visual Preservation Project'
-
-
-# source_path = "/Volumes/CAVPPTestDrive/LAMetroLibrary/"
-# program = ['mencoder']
-# source_flags = "dvd:// -dvd-device".split()
-# destination_flags = "-ovc copy -oac copy -noskip -mc 0 -of mpeg -o ".split()
 
 
 def extract(source_path):

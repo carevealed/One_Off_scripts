@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 ==============================================================================
 * California Audiovisual Preservation Project Script: VOB to MPEG2 Converter *
