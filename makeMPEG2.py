@@ -2,7 +2,7 @@
 ==============================================================================
 * California Audiovisual Preservation Project Script: VOB to MPEG2 Converter *
 ==============================================================================
-Description: Concatenates vob files and creates a .mpg mpeg2 file using ffmpeg.
+Description: Concatenates vob files and creates an .mpg mpeg2 file using ffmpeg.
 
 Note:        This script was originally built as a one-off and not intended for production. However, it should work.
              It just won't be as full featured or as reliable as other scripts.
