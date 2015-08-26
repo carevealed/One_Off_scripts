@@ -2,15 +2,15 @@
 ==============================================================================
 * California Audiovisual Preservation Project Script: VOB to MPEG2 Converter *
 ==============================================================================
-Description:    Concatenates vob files and creates a .mpg mpeg2 file using ffmpeg.
+Description: Concatenates vob files and creates a .mpg mpeg2 file using ffmpeg.
 
-Note:           This script was originally built as a one-off and not intended for production. However, it should work.
-                It just won't be as full featured or as reliable as other scripts.
+Note:        This script was originally built as a one-off and not intended for production. However, it should work.
+             It just won't be as full featured or as reliable as other scripts.
 
-                There are limitations with this script that'll be known only through use.
+             There are limitations with this script that'll be known only through use.
 
 
-Usage:          python makeMPEG2.py [folder]
+Usage:       python makeMPEG2.py [folder]
 
 """
 
@@ -26,33 +26,31 @@ __author__ = 'California Audio Visual Preservation Project'
 
 TITLE_NUM_PATTERN = re.compile("(?<=VTS_)\d\d")
 
-# source_path = "/Volumes/CAVPPTestDrive/LAMetroLibrary/"
+
 def get_total_title(source_path):
     total_titles = 0
     for root, dirs, files in os.walk(source_path):
-        vobs = []
         for file in files:
-            # print(dir)
-            #
-            # for file in files:
+
+            # exclude hidden files
             if file.startswith('.'):
                 continue
 
-            # print("Here")
+            # exclude files that aren't vobs
             if not os.path.splitext(file)[1] == ".VOB":
                 continue
+
+            # exclude files with the wrong prefix
             if not file.startswith("VTS_"):
                 continue
+
             results = int(re.search(TITLE_NUM_PATTERN, file).group(0))
             if results > total_titles:
                 total_titles = results
-            new_file = os.path.join(root, file)
-            # print(new_file)
-        # vobs.append(new_file)
     return total_titles
 
 
-def get_title_vobs(source_path, title_number):
+def get_vobs_from_title(source_path, title_number):
     vobs = []
     include_hidden = False
 
@@ -60,33 +58,38 @@ def get_title_vobs(source_path, title_number):
         for root, dirs, files in os.walk(source_path):
             for file in files:
                 if not include_hidden:
+
+                    # exclude hidden files
                     if file.startswith('.'):
                         continue
+
+                # exclude files that aren't vobs
                 if not os.path.splitext(file)[1] == ".VOB":
                     continue
+
+                # exclude files with the wrong prefix
                 if not file.startswith("VTS_"):
                     continue
+
                 if int(re.search(TITLE_NUM_PATTERN, file).group(0)) == title_number:
-                    # print(os.path.join(root, file))
                     vobs.append(os.path.join(root, file))
+
     if len(vobs) > 0:
         return sorted(vobs)
 
 
 def concat_vobs(new_name, vobs):
-    # for vob in vobs:
     if not vobs:
-        raise Exception
+        raise Exception("Cannot concatenate zero files together.")
+
     path = os.path.dirname(new_name)
     if not os.path.exists(path):
         os.mkdir(path)
 
     with open(new_name, 'wb') as complete:
         for filename in vobs:
-            print(filename)
+            print(os.path.basename(filename))
             shutil.copyfileobj(open(filename, 'rb'), complete)
-        #
-        # print("creating everything")
     pass
 
 
@@ -98,7 +101,9 @@ def make_mpegs(source_path):
                 if not include_hidden:
                     if file.startswith('.'):
                         continue
-                print(os.path.join(root, file))
+                if not os.path.splitext(file)[1] == ".VOB":
+                    continue
+                print(file)
                 new_name = os.path.basename(os.path.splitext(file)[0]) + ".mpg"
                 source_file = os.path.join(root, file)
                 destination_mp2 = os.path.join(source_path, new_name)
@@ -106,8 +111,6 @@ def make_mpegs(source_path):
                 ffmpeg_command = ['ffmpeg', '-v', 'warning', '-stats', '-i', source_file, '-c:v', 'copy', '-c:a', 'mp2', destination_mp2]
                 print(" ".join(ffmpeg_command))
                 subprocess.call(ffmpeg_command)
-                # ffmpeg = Popen(ffmpeg_command)
-                # ffmpeg.communicate()
 
 
 def make_mpeg2(source_path):
@@ -124,7 +127,7 @@ def make_mpeg2(source_path):
 
     # get every chapter with it's title
     for number in range(total_titles + 1):
-        titles.append(get_title_vobs(source_path, number))
+        titles.append(get_vobs_from_title(source_path, number))
 
     # concatenate all the vob files
     for i, title in enumerate(titles):
@@ -135,19 +138,10 @@ def make_mpeg2(source_path):
 
 
     print(total_titles)
-    destination_mp2 = ""
-
+    print("Making mpeg2 files")
     make_mpegs(destination_path)
-    # if os.path.exists(source_vob):
-    #     ffmpeg_command = ['ffmpeg', '-v', 'warning', '-stats', '-i', source_vob, '-c:v', 'copy', '-c:a', 'mp2', destination_mp2]
-    #     print(" ".join(ffmpeg_command))
-        # ffmpeg = Popen(ffmpeg_command)
-        # ffmpeg.communicate()
 
-
-        # print("\n")
-        # print("*****")
-    # with open(os.path.join(root, "files.txt"), "r") as newList:
+    print("All done")
 
 
 def isValidFolder(folder):
