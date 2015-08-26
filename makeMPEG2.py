@@ -50,6 +50,28 @@ def get_total_title(source_path):
     return total_titles
 
 
+def get_titles(source_path):
+    titles = []
+    for root, dirs, files in os.walk(source_path):
+        for file in files:
+
+            # exclude hidden files
+            if file.startswith('.'):
+                continue
+
+            # exclude files that aren't vobs
+            if not os.path.splitext(file)[1] == ".VOB":
+                continue
+
+            # exclude files with the wrong prefix
+            if not file.startswith("VTS_"):
+                continue
+
+
+            titles.append(int(re.search(TITLE_NUM_PATTERN, file).group(0)))
+    return set(titles)
+
+
 def get_vobs_from_title(source_path, title_number):
     vobs = []
     include_hidden = False
@@ -122,22 +144,25 @@ def make_mpeg2(source_path):
     print("Sorting", base_name)
 
     # Find the number of titles
-    total_titles = get_total_title(source_path)
+    # total_titles = get_total_title(source_path)
+    all_titles = get_titles(source_path)
+
     titles = []
 
     # get every chapter with it's title
-    for number in range(total_titles + 1):
+    for number in all_titles:
         titles.append(get_vobs_from_title(source_path, number))
 
     # concatenate all the vob files
-    for i, title in enumerate(titles):
-        new_name = os.path.join(destination_path, base_name + "_title_" + str(i).zfill(2) + ".VOB")
-        print("Concatenating " + str(title) + " as " + new_name)
+    for title in titles:
         if title:
+            title_number = int(re.search(TITLE_NUM_PATTERN, title[0]).group(0))
+            new_name = os.path.join(destination_path, base_name + "_title_" + str(title_number).zfill(2) + ".VOB")
+            print("Concatenating " + str(title) + " as " + new_name)
             concat_vobs(new_name, title)
 
 
-    print(total_titles)
+    # print(total_titles)
     print("Making mpeg2 files")
     make_mpegs(destination_path)
 
@@ -148,13 +173,14 @@ def isValidFolder(folder):
     if os.path.exists(folder) and os.path.dirname(folder):
         return True
     else:
-        sys.stderr.write("Invalid argument. Must be a valid folder")
+        print(__doc__)
+        sys.stderr.write("Invalid argument. Must be a valid folder.\n")
         return False
 
 
 def main():
-    print(__doc__)
-    parser = argparse.ArgumentParser(description=__doc__)
+    # print(__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('folder', help="Source folder")
     args = parser.parse_args()
     if args.folder:
